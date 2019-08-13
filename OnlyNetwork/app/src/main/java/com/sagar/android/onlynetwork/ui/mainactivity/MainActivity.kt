@@ -1,6 +1,7 @@
 package com.sagar.android.onlynetwork.ui.mainactivity
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
@@ -11,6 +12,7 @@ import com.sagar.android.onlynetwork.R
 import com.sagar.android.onlynetwork.databinding.ActivityMainBinding
 import com.sagar.android.onlynetwork.model.News
 import com.sagar.android.onlynetwork.ui.mainactivity.adapter.NewsAdapter
+import com.sagar.android.onlynetwork.util.Event
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.kodein
@@ -37,8 +39,8 @@ class MainActivity : AppCompatActivity(), KodeinAware {
         viewModel = ViewModelProvider(this, viewModelProvider).get(MainActivityViewModel::class.java)
 
         setUpList()
-        listenForData()
         setUpSwipeRefreshLayout()
+        bindToViewModel()
     }
 
     private fun setUpSwipeRefreshLayout() {
@@ -51,12 +53,25 @@ class MainActivity : AppCompatActivity(), KodeinAware {
         binding.recyclerView.adapter = adapter
     }
 
-    private fun listenForData() {
+    private fun bindToViewModel() {
         viewModel.newsPagedList.observe(
             this,
             Observer<PagedList<News>> { t ->
                 binding.swipeRefreshLayout.isRefreshing = false
                 adapter.submitList(t)
+            }
+        )
+
+        viewModel.mediatorLiveDataHeadLineError.observe(
+            this,
+            Observer<Event<Boolean>> { t ->
+                Toast.makeText(
+                    this,
+                    "Loading of data failed",
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+                binding.swipeRefreshLayout.isRefreshing = false
             }
         )
     }

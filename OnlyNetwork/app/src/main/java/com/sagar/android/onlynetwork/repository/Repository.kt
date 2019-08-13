@@ -2,6 +2,7 @@ package com.sagar.android.onlynetwork.repository
 
 import android.app.Application
 import android.content.SharedPreferences
+import androidx.lifecycle.MutableLiveData
 import androidx.paging.PageKeyedDataSource
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -9,8 +10,10 @@ import com.sagar.android.logutilmaster.LogUtil
 import com.sagar.android.onlynetwork.core.KeyWordsAndConstants
 import com.sagar.android.onlynetwork.model.News
 import com.sagar.android.onlynetwork.repository.retrofit.ApiInterface
+import com.sagar.android.onlynetwork.util.Event
 import com.sagar.android.onlynetwork.util.PagingDirection
 import com.sagar.android.onlynetwork.util.StatusCode
+import com.sagar.android.onlynetwork.util.SuperRepository
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -24,7 +27,9 @@ class Repository(
     private var preference: SharedPreferences,
     private var logUtil: LogUtil,
     private var application: Application
-) {
+) : SuperRepository() {
+
+    val mutableLiveDataGetHeadlinesError: MutableLiveData<Event<Boolean>> = MutableLiveData()
 
     public fun getTopHeadLines(
         pageNumber: Int,
@@ -77,13 +82,20 @@ class Repository(
                                             }
                                         }
                                     )
+                                }.run {
+                                    mutableLiveDataGetHeadlinesError.postValue(Event(false))
                                 }
+                            }
+                            else -> {
+                                mutableLiveDataGetHeadlinesError.postValue(Event(false))
                             }
                         }
                     }
 
                     override fun onError(e: Throwable) {
-
+                        mutableLiveDataGetHeadlinesError.postValue(
+                            Event(false)
+                        )
                     }
                 }
             )
