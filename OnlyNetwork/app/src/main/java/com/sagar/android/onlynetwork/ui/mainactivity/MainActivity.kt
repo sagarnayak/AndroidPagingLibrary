@@ -64,7 +64,7 @@ class MainActivity : AppCompatActivity(), KodeinAware {
 
         viewModel.mediatorLiveDataHeadLineError.observe(
             this,
-            Observer<Event<Boolean>> { t ->
+            Observer<Event<Boolean>> {
                 Toast.makeText(
                     this,
                     "Loading of data failed",
