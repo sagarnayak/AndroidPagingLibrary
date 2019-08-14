@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity(), KodeinAware {
     }
 
     private fun setUpSwipeRefreshLayout() {
-        /*   binding.swipeRefreshLayout.setOnRefreshListener { viewModel.refreshList() }*/
+        binding.swipeRefreshLayout.setOnRefreshListener { viewModel.refreshData() }
     }
 
     private fun setUpList() {
@@ -56,6 +56,7 @@ class MainActivity : AppCompatActivity(), KodeinAware {
         viewModel.newsData.observe(
             this,
             Observer<PagedList<NewsEntity>> { t ->
+                binding.swipeRefreshLayout.isRefreshing = false
                 adapter.submitList(t)
             }
         )
@@ -70,6 +71,7 @@ class MainActivity : AppCompatActivity(), KodeinAware {
                         Toast.LENGTH_LONG
                     )
                         .show()
+                    binding.swipeRefreshLayout.isRefreshing = false
                     t.readContent()
                 }
             }

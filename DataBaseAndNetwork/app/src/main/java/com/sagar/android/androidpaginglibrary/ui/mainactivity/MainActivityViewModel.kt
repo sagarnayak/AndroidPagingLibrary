@@ -8,19 +8,18 @@ import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import com.sagar.android.androidpaginglibrary.core.KeyWordsAndConstants
 import com.sagar.android.androidpaginglibrary.repository.Repository
+import com.sagar.android.androidpaginglibrary.repository.room.NewsBoundaryCallBack
 import com.sagar.android.androidpaginglibrary.repository.room.NewsEntity
 import com.sagar.android.androidpaginglibrary.repository.room.RoomDataBase
 import com.sagar.android.androidpaginglibrary.util.Event
-import com.sagar.android.logutilmaster.LogUtil
 
 class MainActivityViewModel(
-    roomDataBase: RoomDataBase,
-    val repository: Repository,
-    logUtil: LogUtil
+    val roomDataBase: RoomDataBase,
+    val repository: Repository
 ) : ViewModel() {
 
     var newsData: LiveData<PagedList<NewsEntity>>
-    val dataSourceFactory: DataSource.Factory<Int, NewsEntity> = roomDataBase.getNewsDao().getAllNews()
+    private val dataSourceFactory: DataSource.Factory<Int, NewsEntity> = roomDataBase.getNewsDao().getAllNews()
     val mediatorLiveDataHeadLineError: MediatorLiveData<Event<String>> = MediatorLiveData()
 
     init {
@@ -33,6 +32,11 @@ class MainActivityViewModel(
             dataSourceFactory,
             config
         )
+            .setBoundaryCallback(
+                NewsBoundaryCallBack(
+                    repository, roomDataBase
+                )
+            )
             .build()
 
         bindToRepo()
@@ -45,5 +49,6 @@ class MainActivityViewModel(
     }
 
     fun refreshData() {
+        repository.deleteAllData()
     }
 }

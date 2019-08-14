@@ -8,6 +8,7 @@ import com.google.gson.reflect.TypeToken
 import com.sagar.android.androidpaginglibrary.core.KeyWordsAndConstants
 import com.sagar.android.androidpaginglibrary.repository.retrofit.ApiInterface
 import com.sagar.android.androidpaginglibrary.repository.room.NewsEntity
+import com.sagar.android.androidpaginglibrary.repository.room.RoomDataBase
 import com.sagar.android.androidpaginglibrary.util.Event
 import com.sagar.android.androidpaginglibrary.util.PagingDirection
 import com.sagar.android.androidpaginglibrary.util.StatusCode
@@ -25,7 +26,8 @@ class Repository(
     private var apiInterface: ApiInterface,
     private var preference: SharedPreferences,
     private var logUtil: LogUtil,
-    private var application: Application
+    private var application: Application,
+    private var roomDataBase: RoomDataBase
 ) : SuperRepository() {
 
     val mutableLiveDataGetHeadlinesError: MutableLiveData<Event<String>> = MutableLiveData()
@@ -36,6 +38,9 @@ class Repository(
     ) {
         if (isFirstPage)
             initialiseNewsPageNumber()
+
+        if (!isAnyMoreNewsAvailable())
+            return
 
         apiInterface.getTrendingNews(
             "in",
@@ -65,6 +70,18 @@ class Repository(
                                         responseData.getJSONArray("articles").toString(),
                                         newsListType
                                     )
+
+                                    Thread {
+                                        for (news in data) {
+                                            roomDataBase.getNewsDao().addNews(news)
+                                        }
+                                    }.start()
+
+                                    setNextPageForNews()
+
+                                    if (data.size < KeyWordsAndConstants.PAGE_SIZE)
+                                        noMoreNewsAvailable()
+
                                 }.run {
                                     mutableLiveDataGetHeadlinesError.postValue(
                                         Event(
@@ -92,6 +109,13 @@ class Repository(
                     }
                 }
             )
+    }
+
+    fun deleteAllData() {
+        Thread {
+            roomDataBase.getNewsDao().deleteAll()
+        }.start()
+        initialiseNewsPageNumber()
     }
 
     private fun initialiseNewsPageNumber() {

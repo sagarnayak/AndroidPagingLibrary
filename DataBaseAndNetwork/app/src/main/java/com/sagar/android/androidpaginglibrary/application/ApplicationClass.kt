@@ -48,10 +48,11 @@ class ApplicationClass : Application(), KodeinAware {
                 instance(),
                 pref,
                 instance(),
+                instance(),
                 instance()
             )
         }
 
-        bind() from provider { MainActivityViewModelProvider(instance(), instance(), instance()) }
+        bind() from provider { MainActivityViewModelProvider(instance(), instance()) }
     }
 }
