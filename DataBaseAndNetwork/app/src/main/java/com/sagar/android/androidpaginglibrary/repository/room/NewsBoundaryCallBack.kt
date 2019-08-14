@@ -7,7 +7,6 @@ class NewsBoundaryCallBack(val logUtil: LogUtil) : PagedList.BoundaryCallback<Ne
 
     override fun onZeroItemsLoaded() {
         super.onZeroItemsLoaded()
-        logUtil.logV("zero item loaded")
     }
 
     override fun onItemAtEndLoaded(itemAtEnd: NewsEntity) {

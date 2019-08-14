@@ -2,14 +2,23 @@ package com.sagar.android.androidpaginglibrary.repository
 
 import android.app.Application
 import android.content.SharedPreferences
+import androidx.lifecycle.MutableLiveData
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.sagar.android.androidpaginglibrary.core.KeyWordsAndConstants
 import com.sagar.android.androidpaginglibrary.repository.retrofit.ApiInterface
+import com.sagar.android.androidpaginglibrary.repository.room.NewsEntity
+import com.sagar.android.androidpaginglibrary.util.Event
+import com.sagar.android.androidpaginglibrary.util.PagingDirection
+import com.sagar.android.androidpaginglibrary.util.StatusCode
+import com.sagar.android.androidpaginglibrary.util.SuperRepository
 import com.sagar.android.logutilmaster.LogUtil
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import okhttp3.ResponseBody
+import org.json.JSONObject
 import retrofit2.Response
 
 class Repository(
@@ -17,14 +26,22 @@ class Repository(
     private var preference: SharedPreferences,
     private var logUtil: LogUtil,
     private var application: Application
-) {
+) : SuperRepository() {
 
-    public fun getTopHeadLines(pageNumber: Int) {
+    val mutableLiveDataGetHeadlinesError: MutableLiveData<Event<String>> = MutableLiveData()
+
+    public fun getTopHeadLines(
+        pagingDirection: PagingDirection = PagingDirection.NEXT,
+        isFirstPage: Boolean = false
+    ) {
+        if (isFirstPage)
+            initialiseNewsPageNumber()
+
         apiInterface.getTrendingNews(
             "in",
             KeyWordsAndConstants.API_KEY,
-            pageNumber.toString(),
-            KeyWordsAndConstants.PAGE_SIZE
+            getNewsPageToGet().toString(),
+            KeyWordsAndConstants.PAGE_SIZE.toString()
         )
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -39,13 +56,80 @@ class Repository(
                     }
 
                     override fun onNext(t: Response<ResponseBody>) {
-
+                        val newsListType = object : TypeToken<List<NewsEntity>>() {}.type
+                        when (t.code()) {
+                            StatusCode.OK.code -> {
+                                t.body()?.let {
+                                    val responseData = JSONObject(it.string())
+                                    val data = Gson().fromJson<List<NewsEntity>>(
+                                        responseData.getJSONArray("articles").toString(),
+                                        newsListType
+                                    )
+                                }.run {
+                                    mutableLiveDataGetHeadlinesError.postValue(
+                                        Event(
+                                            if (t.errorBody() != null) getErrorMessage(t.errorBody()!!) else ""
+                                        )
+                                    )
+                                }
+                            }
+                            else -> {
+                                mutableLiveDataGetHeadlinesError.postValue(
+                                    Event(
+                                        if (t.errorBody() != null) getErrorMessage(t.errorBody()!!) else ""
+                                    )
+                                )
+                            }
+                        }
                     }
 
                     override fun onError(e: Throwable) {
-
+                        mutableLiveDataGetHeadlinesError.postValue(
+                            Event(
+                                getErrorMessage(e)
+                            )
+                        )
                     }
                 }
             )
+    }
+
+    private fun initialiseNewsPageNumber() {
+        preference.edit().putInt(
+            KeyWordsAndConstants.NEWS_PAGE_TO_LOAD,
+            0
+        ).apply()
+        preference.edit().putBoolean(
+            KeyWordsAndConstants.ANY_MORE_NEWS_AVAILABLE,
+            true
+        ).apply()
+    }
+
+    private fun getNewsPageToGet(): Int {
+        return preference.getInt(
+            KeyWordsAndConstants.NEWS_PAGE_TO_LOAD,
+            0
+        )
+    }
+
+    private fun setNextPageForNews() {
+        preference.edit().putInt(
+            KeyWordsAndConstants.NEWS_PAGE_TO_LOAD,
+            getNewsPageToGet() + 1
+        ).apply()
+    }
+
+    private fun noMoreNewsAvailable() {
+        preference.edit().putBoolean(
+            KeyWordsAndConstants.ANY_MORE_NEWS_AVAILABLE,
+            false
+        ).apply()
+    }
+
+    private fun isAnyMoreNewsAvailable(): Boolean {
+        return preference.getBoolean(
+            KeyWordsAndConstants.ANY_MORE_NEWS_AVAILABLE,
+            false
+        )
     }
 }

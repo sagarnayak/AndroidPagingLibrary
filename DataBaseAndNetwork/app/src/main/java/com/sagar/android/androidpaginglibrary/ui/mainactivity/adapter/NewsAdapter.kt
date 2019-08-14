@@ -7,15 +7,17 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.sagar.android.androidpaginglibrary.databinding.NewsListItemBinding
 import com.sagar.android.androidpaginglibrary.repository.room.NewsEntity
+import com.squareup.picasso.Picasso
 
-class NewsAdapter : PagedListAdapter<NewsEntity, NewsAdapter.ViewHolder>(
+class NewsAdapter
+    : PagedListAdapter<NewsEntity, NewsAdapter.ViewHolder>(
     object : DiffUtil.ItemCallback<NewsEntity>() {
         override fun areItemsTheSame(oldItem: NewsEntity, newItem: NewsEntity): Boolean {
-            return true
+            return oldItem.title == newItem.title
         }
 
         override fun areContentsTheSame(oldItem: NewsEntity, newItem: NewsEntity): Boolean {
-            return true
+            return oldItem.toString() == newItem.toString()
         }
     }
 ) {
@@ -33,11 +35,19 @@ class NewsAdapter : PagedListAdapter<NewsEntity, NewsAdapter.ViewHolder>(
         getItem(position)?.let { holder.bind(it) }
     }
 
-    inner class ViewHolder(val newsListItemBinding: NewsListItemBinding) :
+    inner class ViewHolder(private val newsListItemBinding: NewsListItemBinding) :
         RecyclerView.ViewHolder(newsListItemBinding.root) {
 
-        fun bind(newsEntity: NewsEntity) {
-            newsListItemBinding.title.text = newsEntity.title
+        fun bind(news: NewsEntity) {
+            newsListItemBinding.title.text = news.title
+
+            Picasso.get()
+                .load(
+                    news.urlToImage
+                )
+                .into(
+                    newsListItemBinding.image
+                )
         }
     }
 }

@@ -52,6 +52,6 @@ class ApplicationClass : Application(), KodeinAware {
             )
         }
 
-        bind() from provider { MainActivityViewModelProvider(instance(), instance()) }
+        bind() from provider { MainActivityViewModelProvider(instance(), instance(), instance()) }
     }
 }
