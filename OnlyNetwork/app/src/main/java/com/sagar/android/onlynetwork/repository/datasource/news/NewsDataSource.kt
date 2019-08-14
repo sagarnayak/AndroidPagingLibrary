@@ -1,8 +1,9 @@
-package com.sagar.android.onlynetwork.repository
+package com.sagar.android.onlynetwork.repository.datasource.news
 
 import androidx.paging.PageKeyedDataSource
 import com.sagar.android.onlynetwork.core.KeyWordsAndConstants
 import com.sagar.android.onlynetwork.model.News
+import com.sagar.android.onlynetwork.repository.Repository
 import com.sagar.android.onlynetwork.util.PagingDirection
 
 class NewsDataSource(

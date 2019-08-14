@@ -29,7 +29,7 @@ class Repository(
     private var application: Application
 ) : SuperRepository() {
 
-    val mutableLiveDataGetHeadlinesError: MutableLiveData<Event<Boolean>> = MutableLiveData()
+    val mutableLiveDataGetHeadlinesError: MutableLiveData<Event<String>> = MutableLiveData()
 
     public fun getTopHeadLines(
         pageNumber: Int,
@@ -83,18 +83,28 @@ class Repository(
                                         }
                                     )
                                 }.run {
-                                    mutableLiveDataGetHeadlinesError.postValue(Event(false))
+                                    mutableLiveDataGetHeadlinesError.postValue(
+                                        Event(
+                                            if (t.errorBody() != null) getErrorMessage(t.errorBody()!!) else ""
+                                        )
+                                    )
                                 }
                             }
                             else -> {
-                                mutableLiveDataGetHeadlinesError.postValue(Event(false))
+                                mutableLiveDataGetHeadlinesError.postValue(
+                                    Event(
+                                        if (t.errorBody() != null) getErrorMessage(t.errorBody()!!) else ""
+                                    )
+                                )
                             }
                         }
                     }
 
                     override fun onError(e: Throwable) {
                         mutableLiveDataGetHeadlinesError.postValue(
-                            Event(false)
+                            Event(
+                                getErrorMessage(e)
+                            )
                         )
                     }
                 }

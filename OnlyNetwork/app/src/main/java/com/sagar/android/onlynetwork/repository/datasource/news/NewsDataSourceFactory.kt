@@ -1,9 +1,10 @@
-package com.sagar.android.onlynetwork.repository
+package com.sagar.android.onlynetwork.repository.datasource.news
 
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.DataSource
 import androidx.paging.PageKeyedDataSource
 import com.sagar.android.onlynetwork.model.News
+import com.sagar.android.onlynetwork.repository.Repository
 
 class NewsDataSourceFactory(
     private val repository: Repository

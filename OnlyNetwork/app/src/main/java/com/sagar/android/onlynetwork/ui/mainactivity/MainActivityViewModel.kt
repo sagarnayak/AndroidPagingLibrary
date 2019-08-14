@@ -8,7 +8,7 @@ import androidx.paging.PageKeyedDataSource
 import androidx.paging.PagedList
 import com.sagar.android.onlynetwork.core.KeyWordsAndConstants
 import com.sagar.android.onlynetwork.model.News
-import com.sagar.android.onlynetwork.repository.NewsDataSourceFactory
+import com.sagar.android.onlynetwork.repository.datasource.news.NewsDataSourceFactory
 import com.sagar.android.onlynetwork.repository.Repository
 import com.sagar.android.onlynetwork.util.Event
 
@@ -16,8 +16,9 @@ class MainActivityViewModel(val repository: Repository) : ViewModel() {
 
     var newsPagedList: LiveData<PagedList<News>>
     var newsPagedListDataSource: LiveData<PageKeyedDataSource<Int, News>>
-    var newsDataSourceFactory: NewsDataSourceFactory = NewsDataSourceFactory(repository)
-    val mediatorLiveDataHeadLineError: MediatorLiveData<Event<Boolean>> = MediatorLiveData()
+    var newsDataSourceFactory: NewsDataSourceFactory =
+        NewsDataSourceFactory(repository)
+    val mediatorLiveDataHeadLineError: MediatorLiveData<Event<String>> = MediatorLiveData()
 
     init {
         val config = PagedList.Config.Builder()

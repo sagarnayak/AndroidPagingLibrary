@@ -64,14 +64,17 @@ class MainActivity : AppCompatActivity(), KodeinAware {
 
         viewModel.mediatorLiveDataHeadLineError.observe(
             this,
-            Observer<Event<Boolean>> {
-                Toast.makeText(
-                    this,
-                    "Loading of data failed",
-                    Toast.LENGTH_LONG
-                )
-                    .show()
-                binding.swipeRefreshLayout.isRefreshing = false
+            Observer<Event<String>> { t ->
+                if (t.shouldReadContent()) {
+                    Toast.makeText(
+                        this,
+                        t.getContent(),
+                        Toast.LENGTH_LONG
+                    )
+                        .show()
+                    binding.swipeRefreshLayout.isRefreshing = false
+                    t.readContent()
+                }
             }
         )
     }
